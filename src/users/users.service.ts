@@ -10,7 +10,7 @@ import { ChangePasswordDto } from './dtos/change-password.dto';
 import { BusinessException } from '@common/exceptions';
 import { ErrorCodes } from '@common/constants';
 import { TextUtil } from '@common/utils';
-import { ConfiguracionSeguridad } from '@env/env.production';
+import { ConfiguracionSeguridad } from '@env/env';
 import { EstadoUsuario } from './enums/user-status.enum';
 import { UserValidationHelper } from './helpers/user-validation.helper';
 

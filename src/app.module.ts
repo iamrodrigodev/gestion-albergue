@@ -6,7 +6,7 @@ import { GlobalExceptionFilter } from '@common/filters';
 import { ResponseInterceptor } from '@common/interceptors';
 import { DatabaseModule } from '@database/database.module';
 import { UsersModule } from './users/users.module';
-import { ConfiguracionCache } from '@env/env';
+import { ConfiguracionCache } from '@config/config';
 
 @Module({
   imports: [

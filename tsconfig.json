@@ -22,8 +22,8 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@env/*": [
-        "env/*"
+      "@config/*": [
+        "src/config/*"
       ],
       "@common/*": [
         "src/common/*"

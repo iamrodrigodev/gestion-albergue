@@ -9,7 +9,7 @@ import {
 import { ValidationPipe, ClassSerializerInterceptor } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AppModule } from '@src/app.module';
-import { ConfiguracionServidor } from '@env/env';
+import { ConfiguracionServidor } from '@config/config';
 import { validationFactory } from '@common/validation';
 
 async function bootstrap() {

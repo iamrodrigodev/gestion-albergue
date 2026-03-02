@@ -3,18 +3,19 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { addTransactionalDataSource } from 'typeorm-transactional';
 import { DataSource } from 'typeorm';
 import { ConfiguracionBaseDatos } from '@config/config';
+import { env } from 'node:process';
 
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
       useFactory: () => ({
         type: 'postgres',
-        //host: BaseDatos.HOST_BASE_DE_DATOS,
-        //port: BaseDatos.PUERTO_BASE_DE_DATOS,
-        //username: BaseDatos.USUARIO_BASE_DE_DATOS,
-        //password: BaseDatos.CLAVE_BASE_DE_DATOS,
-        //database: BaseDatos.NOMBRE_BASE_DE_DATOS,
+        host: env.HOST_BASE_DE_DATOS,
+        username: env.USUARIO_BASE_DE_DATOS,
+        password: env.CLAVE_BASE_DE_DATOS,
+        database: env.NOMBRE_BASE_DE_DATOS,
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+        port: ConfiguracionBaseDatos.PUERTO_BASE_DE_DATOS,
         synchronize: ConfiguracionBaseDatos.SYNCHRONIZE,
         logging: ConfiguracionBaseDatos.LOGGING,
         extra: ConfiguracionBaseDatos.CONFIGURACION_EXTRA,

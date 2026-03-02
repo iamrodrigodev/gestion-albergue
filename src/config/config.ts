@@ -18,6 +18,7 @@ export class ConfiguracionServidor {
 export class ConfiguracionBaseDatos {
   static readonly SYNCHRONIZE: boolean = false;
   static readonly LOGGING: boolean = false;
+  static readonly PUERTO_BASE_DE_DATOS: number = 5432;
   static readonly CONFIGURACION_EXTRA = {
     max: 20,
     idleTimeoutMillis: 30000,

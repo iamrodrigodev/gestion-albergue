@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { initializeTransactionalContext } from 'typeorm-transactional';
 initializeTransactionalContext();
 

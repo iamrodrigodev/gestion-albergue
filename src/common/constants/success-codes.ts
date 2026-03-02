@@ -1,4 +1,4 @@
-import { NOMBRE_APLICACION } from '@env/env';
+import { NOMBRE_APLICACION } from '@config/config';
 
 export interface DetalleCodigoExito {
   codigo: string;

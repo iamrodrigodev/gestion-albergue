@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { addTransactionalDataSource } from 'typeorm-transactional';
+import {
+  addTransactionalDataSource,
+  getDataSourceByName,
+} from 'typeorm-transactional';
 import { DataSource } from 'typeorm';
 import { ConfiguracionBaseDatos } from '@config/config';
 import { env } from 'node:process';
@@ -10,12 +13,12 @@ import { env } from 'node:process';
     TypeOrmModule.forRootAsync({
       useFactory: () => ({
         type: 'postgres',
-        host: env.HOST_BASE_DE_DATOS,
+        host: env.HOST_BASE_DE_DATOS || 'localhost',
+        port: parseInt(env.PUERTO_BASE_DE_DATOS || '5432', 10),
         username: env.USUARIO_BASE_DE_DATOS,
         password: env.CLAVE_BASE_DE_DATOS,
         database: env.NOMBRE_BASE_DE_DATOS,
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-        port: ConfiguracionBaseDatos.PUERTO_BASE_DE_DATOS,
         synchronize: ConfiguracionBaseDatos.SYNCHRONIZE,
         logging: ConfiguracionBaseDatos.LOGGING,
         extra: ConfiguracionBaseDatos.CONFIGURACION_EXTRA,
@@ -27,6 +30,12 @@ import { env } from 'node:process';
             'No se proporcionaron opciones de conexión a la base de datos',
           );
         }
+
+        const existingDataSource = getDataSourceByName('default');
+        if (existingDataSource) {
+          return Promise.resolve(existingDataSource);
+        }
+
         const dataSource = new DataSource(options);
         return Promise.resolve(addTransactionalDataSource(dataSource));
       },

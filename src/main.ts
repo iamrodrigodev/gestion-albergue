@@ -1,4 +1,6 @@
 import { initializeTransactionalContext } from 'typeorm-transactional';
+initializeTransactionalContext();
+
 import { NestFactory } from '@nestjs/core';
 import {
   FastifyAdapter,
@@ -11,8 +13,6 @@ import { ConfiguracionServidor } from '@env/env';
 import { validationFactory } from '@common/validation';
   
 async function bootstrap() {
-  initializeTransactionalContext();
-
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter(),

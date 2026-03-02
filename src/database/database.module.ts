@@ -16,14 +16,16 @@ import { BaseDatos } from '@env/env';
         database: BaseDatos.NOMBRE_BASE_DE_DATOS,
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
         synchronize: true,
+        ssl: {
+          rejectUnauthorized: false, // sin ssl
+        },
       }),
-      dataSourceFactory(options) {
+      async dataSourceFactory(options) {
         if (!options) {
           throw new Error('No se proporcionaron opciones de conexión a la base de datos');
         }
-        return Promise.resolve(
-          addTransactionalDataSource(new DataSource(options)),
-        );
+        const dataSource = new DataSource(options);
+        return addTransactionalDataSource(dataSource);
       },
     }),
   ],

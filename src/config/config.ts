@@ -2,7 +2,7 @@ export class ConfiguracionSeguridad {
   static readonly RONDAS_SAL_BCRYPT: number = 10;
 }
 
-export const NOMBRE_APLICACION: string = 'GestionAlbergue';
+export const NOMBRE_APLICACION: string = 'GestionAlbergueApi';
 
 export class ConfiguracionCache {
   static readonly TTL_CACHE: number = 10000;

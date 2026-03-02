@@ -11,8 +11,8 @@ export class ConfiguracionCache {
 }
 
 export class ConfiguracionServidor {
-  static readonly PUERTO_SERVIDOR: number = 3000;
-  static readonly HOST_SERVIDOR: string = 'localhost';
+  static readonly PUERTO_SERVIDOR: number = parseInt(process.env.PORT || '3000', 10);
+  static readonly HOST_SERVIDOR: string = '0.0.0.0';
 }
 
 export class ConfiguracionBaseDatos {

@@ -9,7 +9,9 @@ import {
   Patch,
   HttpCode,
   HttpStatus,
+  UseInterceptors,
 } from '@nestjs/common';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import { plainToInstance } from 'class-transformer';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dtos/create-user.dto';
@@ -69,6 +71,7 @@ export class UsersController {
   }
 
   @Get(':id')
+  @UseInterceptors(CacheInterceptor)
   @BusinessResponse(SuccessCodes.USUARIO_ENCONTRADO)
   async buscarPorId(
     @Param('id', ParseIntPipe) id: number,
@@ -80,6 +83,7 @@ export class UsersController {
   }
 
   @Get()
+  @UseInterceptors(CacheInterceptor)
   @BusinessResponse(SuccessCodes.LISTADO_USUARIOS)
   async listarPorEstado(
     @Query('estado', ParseEstadoPipe) estado?: EstadoUsuario,

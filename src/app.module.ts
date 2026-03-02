@@ -1,13 +1,23 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { CacheModule } from '@nestjs/cache-manager';
 import { HealthController } from './health.controller';
 import { GlobalExceptionFilter } from '@common/filters';
 import { ResponseInterceptor } from '@common/interceptors';
 import { DatabaseModule } from '@database/database.module';
 import { UsersModule } from './users/users.module';
+import { ConfiguracionCache } from '@env/env';
 
 @Module({
-  imports: [DatabaseModule, UsersModule],
+  imports: [
+    CacheModule.register({
+      ttl: ConfiguracionCache.TTL_CACHE,
+      max: ConfiguracionCache.MAX_CACHE,
+      isGlobal: ConfiguracionCache.IS_GLOBAL,
+    }),
+    DatabaseModule,
+    UsersModule,
+  ],
   controllers: [HealthController],
   providers: [
     {

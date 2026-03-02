@@ -120,7 +120,9 @@ export class UsersService {
   }
 
   async obtenerPorId(id: number): Promise<User> {
-    const usuario = await this.repositorioUsuarios.findOne({ where: { id } });
+    const usuario = await this.repositorioUsuarios.findOne({
+      where: { id },
+    });
     if (!usuario) {
       throw new BusinessException(ErrorCodes.USUARIO_NO_ENCONTRADO);
     }

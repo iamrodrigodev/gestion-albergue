@@ -11,7 +11,7 @@ import { Reflector } from '@nestjs/core';
 import { AppModule } from '@src/app.module';
 import { ConfiguracionServidor } from '@env/env';
 import { validationFactory } from '@common/validation';
-  
+
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,

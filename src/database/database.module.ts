@@ -15,16 +15,10 @@ import { BaseDatos } from '@env/env';
         password: BaseDatos.CLAVE_BASE_DE_DATOS,
         database: BaseDatos.NOMBRE_BASE_DE_DATOS,
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-        synchronize: false, // Desactivado para produccion, usa migraciones
-        logging: false, // Desactiva logs excesivos
-        extra: {
-          max: 20, // Maximo 20 clientes concurrentes
-          idleTimeoutMillis: 30000, // Cierra conexiones inactivas tras 30s
-          connectionTimeoutMillis: 5000, // Tiempo limite para conectar (Azure puede ser lento)
-        },
-        ssl: {
-          rejectUnauthorized: false,
-        },
+        synchronize: BaseDatos.SYNCHRONIZE,
+        logging: BaseDatos.LOGGING,
+        extra: BaseDatos.CONFIGURACION_EXTRA,
+        ssl: BaseDatos.SSL,
       }),
       dataSourceFactory(options) {
         if (!options) {

@@ -22,7 +22,7 @@ export class ConfiguracionBaseDatos {
   static readonly CONFIGURACION_EXTRA = {
     max: 20,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 5000,
+    connectionTimeoutMillis: 30000, // Aumentado para Azure
   };
   static readonly SSL = {
     rejectUnauthorized: false,

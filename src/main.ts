@@ -32,7 +32,6 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
-  // Azure Web Apps provee el puerto en process.env.PORT en runtime
   const port = process.env.PORT || 3000;
   const host = '0.0.0.0';
   

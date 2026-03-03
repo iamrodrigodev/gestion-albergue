@@ -7,16 +7,17 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
-import { ValidationPipe, ClassSerializerInterceptor } from '@nestjs/common';
+import { ValidationPipe, ClassSerializerInterceptor, Logger } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AppModule } from '@src/app.module';
-import { ConfiguracionServidor } from '@config/config';
 import { validationFactory } from '@common/validation';
 
 async function bootstrap() {
+  const logger = new Logger('Bootstrap');
+  
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter(),
+    new FastifyAdapter({ logger: true }),
   );
 
   app.useGlobalPipes(
@@ -31,10 +32,12 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
-  await app.listen(
-    ConfiguracionServidor.PUERTO_SERVIDOR,
-    ConfiguracionServidor.HOST_SERVIDOR,
-  );
+  // Azure Web Apps provee el puerto en process.env.PORT en runtime
+  const port = process.env.PORT || 3000;
+  const host = '0.0.0.0';
+  
+  await app.listen(port, host);
+  logger.log(`Aplicación corriendo en http://${host}:${port}`);
 }
 
 bootstrap().catch((error) => {

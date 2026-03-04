@@ -35,7 +35,12 @@ export class UploadController {
     }
 
     try {
-      const url = await this.storageService.uploadFile(file);
+      const archivo = {
+        buffer: await file.toBuffer(),
+        mimetype: file.mimetype,
+        filename: file.filename,
+      };
+      const url = await this.storageService.uploadFile(archivo);
       return { url };
     } catch (error) {
       const message =

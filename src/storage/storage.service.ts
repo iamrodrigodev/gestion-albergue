@@ -4,7 +4,12 @@ import { v4 as uuidv4 } from 'uuid';
 import * as path from 'path';
 import { BusinessException } from '@common/exceptions';
 import { ErrorCodes } from '@common/constants';
-import { MultipartFile } from '@fastify/multipart';
+
+export interface ArchivoSubida {
+  buffer: Buffer;
+  mimetype: string;
+  filename: string;
+}
 
 @Injectable()
 export class StorageService {
@@ -37,20 +42,19 @@ export class StorageService {
     }
   }
 
-  async uploadFile(file: MultipartFile): Promise<string> {
+  async uploadFile(archivo: ArchivoSubida): Promise<string> {
     if (!this.containerClient) {
       throw new BusinessException(ErrorCodes.ERROR_INTERNO);
     }
 
     try {
-      const buffer = await file.toBuffer();
-      const extension = path.extname(file.filename);
+      const extension = path.extname(archivo.filename);
       const fileName = `${uuidv4()}${extension}`;
 
       const blockBlobClient = this.containerClient.getBlockBlobClient(fileName);
 
-      await blockBlobClient.uploadData(buffer, {
-        blobHTTPHeaders: { blobContentType: file.mimetype },
+      await blockBlobClient.uploadData(archivo.buffer, {
+        blobHTTPHeaders: { blobContentType: archivo.mimetype },
       });
 
       this.logger.log(`Archivo subido exitosamente: ${fileName}`);

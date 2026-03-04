@@ -14,7 +14,7 @@ import { ConfiguracionSeguridad } from '@config/config';
 import { EstadoUsuario } from './enums/user-status.enum';
 import { UserValidationHelper } from './helpers/user-validation.helper';
 import { StorageService } from '../storage/storage.service';
-import type { MultipartFile } from '@fastify/multipart';
+import type { ArchivoSubida } from '../storage/storage.service';
 
 @Injectable()
 export class UsersService {
@@ -32,8 +32,21 @@ export class UsersService {
   ) {}
 
   @Transactional()
-  async crear(dto: CreateUserDto, archivo?: MultipartFile): Promise<User> {
-    // Subir foto si existe y es válida
+  async crear(dto: CreateUserDto, archivo?: ArchivoSubida): Promise<User> {
+    const correoNormalizado = TextUtil.normalizar(dto.correoElectronico);
+    const nombresNormalizados = TextUtil.normalizarSinPuntos(dto.nombres);
+    const apellidosNormalizados = TextUtil.normalizarSinPuntos(dto.apellidos);
+
+    // Validar primero que el correo no exista
+    const existeUsuario = await this.repositorioUsuarios.findOne({
+      where: { correoElectronico: correoNormalizado! },
+    });
+
+    if (existeUsuario) {
+      throw new BusinessException(ErrorCodes.USUARIO_CORREO_DUPLICADO);
+    }
+
+    // Solo subir foto después de validar todo
     if (archivo && this.ALLOWED_MIME_TYPES.includes(archivo.mimetype)) {
       try {
         dto.fotoUrl = await this.storageService.uploadFile(archivo);
@@ -42,18 +55,6 @@ export class UsersService {
           `Error al subir foto, creando usuario sin imagen: ${error}`,
         );
       }
-    }
-
-    const correoNormalizado = TextUtil.normalizar(dto.correoElectronico);
-    const nombresNormalizados = TextUtil.normalizarSinPuntos(dto.nombres);
-    const apellidosNormalizados = TextUtil.normalizarSinPuntos(dto.apellidos);
-
-    const existeUsuario = await this.repositorioUsuarios.findOne({
-      where: { correoElectronico: correoNormalizado! },
-    });
-
-    if (existeUsuario) {
-      throw new BusinessException(ErrorCodes.USUARIO_CORREO_DUPLICADO);
     }
 
     const semilla = await bcrypt.genSalt(

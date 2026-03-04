@@ -32,8 +32,8 @@ export class UsersController {
   @Post()
   @BusinessResponse(SuccessCodes.USUARIO_CREADO)
   async registrar(@Req() req: FastifyRequest): Promise<UserResponseDto> {
-    const { dto, file } = await RequestParserHelper.parseCreateUser(req);
-    const usuario = await this.usersService.crear(dto, file);
+    const { dto, archivo } = await RequestParserHelper.parseCreateUser(req);
+    const usuario = await this.usersService.crear(dto, archivo);
     return plainToInstance(UserResponseDto, usuario, {
       excludeExtraneousValues: true,
     });

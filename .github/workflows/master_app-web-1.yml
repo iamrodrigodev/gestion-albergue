@@ -25,19 +25,23 @@ jobs:
 
       - name: npm install, build, and test
         run: |
-          npm install
+          npm ci
           npm run build
           npm run test --if-present
-          npm prune --production
+
+      - name: Prepare production dependencies
+        run: |
+          rm -rf node_modules
+          npm ci --omit=dev
+
+      - name: Zip artifact for deployment
+        run: zip -r release.zip dist node_modules package.json package-lock.json web.config
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: |
-            .
-            !src
-            !test
+          path: release.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -51,6 +55,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node-app
+
+      - name: Unzip artifact for deployment
+        run: unzip release.zip -d ./app
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -65,5 +72,5 @@ jobs:
         with:
           app-name: 'app-web-1'
           slot-name: 'Production'
-          package: .
+          package: ./app
           

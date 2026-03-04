@@ -37,7 +37,7 @@ export class UsersService {
     const nombresNormalizados = TextUtil.normalizarSinPuntos(dto.nombres);
     const apellidosNormalizados = TextUtil.normalizarSinPuntos(dto.apellidos);
 
-    // Validar primero que el correo no exista
+    // Validar que el correo no exista
     const existeUsuario = await this.repositorioUsuarios.findOne({
       where: { correoElectronico: correoNormalizado! },
     });
@@ -46,10 +46,16 @@ export class UsersService {
       throw new BusinessException(ErrorCodes.USUARIO_CORREO_DUPLICADO);
     }
 
-    // Solo subir foto después de validar todo
+    const semilla = await bcrypt.genSalt(
+      ConfiguracionSeguridad.RONDAS_SAL_BCRYPT,
+    );
+    const claveEncriptada = await bcrypt.hash(dto.clave, semilla);
+
+    // Solo subir foto después de pasar TODAS las validaciones
+    let fotoUrl: string | undefined;
     if (archivo && this.ALLOWED_MIME_TYPES.includes(archivo.mimetype)) {
       try {
-        dto.fotoUrl = await this.storageService.uploadFile(archivo);
+        fotoUrl = await this.storageService.uploadFile(archivo);
       } catch (error) {
         this.logger.warn(
           `Error al subir foto, creando usuario sin imagen: ${error}`,
@@ -57,17 +63,13 @@ export class UsersService {
       }
     }
 
-    const semilla = await bcrypt.genSalt(
-      ConfiguracionSeguridad.RONDAS_SAL_BCRYPT,
-    );
-    const claveEncriptada = await bcrypt.hash(dto.clave, semilla);
-
     const nuevoUsuario = this.repositorioUsuarios.create({
       ...dto,
       nombres: nombresNormalizados!,
       apellidos: apellidosNormalizados!,
       correoElectronico: correoNormalizado!,
       clave: claveEncriptada,
+      fotoUrl,
     });
 
     return await this.repositorioUsuarios.save(nuevoUsuario);

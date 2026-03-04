@@ -24,7 +24,8 @@ import { BusinessResponse } from '@common/decorators';
 import { SuccessCodes, ErrorCodes } from '@common/constants';
 import { EstadoUsuario } from './enums/user-status.enum';
 import { ParseEstadoPipe } from '@common/pipes';
-import { FastifyRequest } from 'fastify';
+import type { FastifyRequest } from 'fastify';
+import type { MultipartFile, MultipartValue } from '@fastify/multipart';
 import { StorageService } from '../storage/storage.service';
 import { BusinessException } from '@common/exceptions';
 import { validate } from 'class-validator';
@@ -47,13 +48,13 @@ export class UsersController {
 
     const parts = req.parts();
     const data: Record<string, string> = {};
-    let file: any = null;
+    let file: MultipartFile | null = null;
 
     for await (const part of parts) {
       if (part.type === 'file') {
         file = part;
       } else {
-        data[part.fieldname] = (part as any).value;
+        data[part.fieldname] = (part as MultipartValue<string>).value;
       }
     }
 

@@ -51,28 +51,30 @@ export class UsersService {
     );
     const claveEncriptada = await bcrypt.hash(dto.clave, semilla);
 
-    // Solo subir foto después de pasar TODAS las validaciones
-    let fotoUrl: string | undefined;
-    if (archivo && this.ALLOWED_MIME_TYPES.includes(archivo.mimetype)) {
-      try {
-        fotoUrl = await this.storageService.uploadFile(archivo);
-      } catch (error) {
-        this.logger.warn(
-          `Error al subir foto, creando usuario sin imagen: ${error}`,
-        );
-      }
-    }
-
+    // Crear y guardar usuario SIN foto primero
     const nuevoUsuario = this.repositorioUsuarios.create({
       ...dto,
       nombres: nombresNormalizados!,
       apellidos: apellidosNormalizados!,
       correoElectronico: correoNormalizado!,
       clave: claveEncriptada,
-      fotoUrl,
     });
 
-    return await this.repositorioUsuarios.save(nuevoUsuario);
+    const usuarioGuardado = await this.repositorioUsuarios.save(nuevoUsuario);
+
+    // Solo subir foto DESPUÉS de guardar exitosamente
+    if (archivo && this.ALLOWED_MIME_TYPES.includes(archivo.mimetype)) {
+      try {
+        usuarioGuardado.fotoUrl = await this.storageService.uploadFile(archivo);
+        await this.repositorioUsuarios.save(usuarioGuardado);
+      } catch (error) {
+        this.logger.warn(
+          `Error al subir foto, usuario creado sin imagen: ${error}`,
+        );
+      }
+    }
+
+    return usuarioGuardado;
   }
 
   @Transactional()

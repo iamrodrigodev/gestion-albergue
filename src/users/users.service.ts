@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
@@ -13,16 +13,37 @@ import { TextUtil } from '@common/utils';
 import { ConfiguracionSeguridad } from '@config/config';
 import { EstadoUsuario } from './enums/user-status.enum';
 import { UserValidationHelper } from './helpers/user-validation.helper';
+import { StorageService } from '../storage/storage.service';
+import type { MultipartFile } from '@fastify/multipart';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+  private readonly ALLOWED_MIME_TYPES = [
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+  ];
+
   constructor(
     @InjectRepository(User)
     private readonly repositorioUsuarios: Repository<User>,
+    private readonly storageService: StorageService,
   ) {}
 
   @Transactional()
-  async crear(dto: CreateUserDto): Promise<User> {
+  async crear(dto: CreateUserDto, archivo?: MultipartFile): Promise<User> {
+    // Subir foto si existe y es válida
+    if (archivo && this.ALLOWED_MIME_TYPES.includes(archivo.mimetype)) {
+      try {
+        dto.fotoUrl = await this.storageService.uploadFile(archivo);
+      } catch (error) {
+        this.logger.warn(
+          `Error al subir foto, creando usuario sin imagen: ${error}`,
+        );
+      }
+    }
+
     const correoNormalizado = TextUtil.normalizar(dto.correoElectronico);
     const nombresNormalizados = TextUtil.normalizarSinPuntos(dto.nombres);
     const apellidosNormalizados = TextUtil.normalizarSinPuntos(dto.apellidos);

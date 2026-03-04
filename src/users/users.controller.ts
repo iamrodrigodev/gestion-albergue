@@ -11,7 +11,6 @@ import {
   HttpStatus,
   UseInterceptors,
   Req,
-  Logger,
 } from '@nestjs/common';
 import { CacheInterceptor } from '@nestjs/cache-manager';
 import { plainToInstance } from 'class-transformer';
@@ -26,60 +25,47 @@ import { EstadoUsuario } from './enums/user-status.enum';
 import { ParseEstadoPipe } from '@common/pipes';
 import type { FastifyRequest } from 'fastify';
 import type { MultipartFile, MultipartValue } from '@fastify/multipart';
-import { StorageService } from '../storage/storage.service';
 import { BusinessException } from '@common/exceptions';
 import { validate } from 'class-validator';
 
 @Controller('usuarios')
 export class UsersController {
-  private readonly logger = new Logger(UsersController.name);
-
-  constructor(
-    private readonly usersService: UsersService,
-    private readonly storageService: StorageService,
-  ) {}
+  constructor(private readonly usersService: UsersService) {}
 
   @Post()
   @BusinessResponse(SuccessCodes.USUARIO_CREADO)
   async registrar(@Req() req: FastifyRequest): Promise<UserResponseDto> {
-    if (!req.isMultipart()) {
-      throw new BusinessException(ErrorCodes.PETICION_INCORRECTA);
-    }
-
-    const parts = req.parts();
-    const data: Record<string, string> = {};
-    let file: MultipartFile | null = null;
-
-    for await (const part of parts) {
-      if (part.type === 'file') {
-        file = part;
-      } else {
-        data[part.fieldname] = (part as MultipartValue<string>).value;
-      }
-    }
-
-    // Mapear datos al DTO y validar antes de subir nada
-    const dto = plainToInstance(CreateUserDto, data);
-    const errores = await validate(dto);
-
-    if (errores.length > 0) {
-      this.logger.warn('Validacion fallida al crear usuario');
-      throw new BusinessException(ErrorCodes.PETICION_INCORRECTA);
-    }
-
-    // Solo si los datos son validos, procedemos con la foto (si hay)
-    if (file) {
-      const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
-      if (!allowedMimeTypes.includes(file.mimetype)) {
-        throw new BusinessException(ErrorCodes.PETICION_INCORRECTA);
-      }
-      dto.fotoUrl = await this.storageService.uploadFile(file);
-    }
-
-    const usuario = await this.usersService.crear(dto);
+    const { dto, file } = await this.parseRequest(req);
+    const usuario = await this.usersService.crear(dto, file ?? undefined);
     return plainToInstance(UserResponseDto, usuario, {
       excludeExtraneousValues: true,
     });
+  }
+
+  private async parseRequest(
+    req: FastifyRequest,
+  ): Promise<{ dto: CreateUserDto; file: MultipartFile | null }> {
+    let file: MultipartFile | null = null;
+    let data: Record<string, unknown>;
+
+    if (req.isMultipart()) {
+      const parts = req.parts();
+      const fields: Record<string, string> = {};
+      for await (const part of parts) {
+        if (part.type === 'file') file = part;
+        else fields[part.fieldname] = (part as MultipartValue<string>).value;
+      }
+      data = fields;
+    } else {
+      data = req.body as Record<string, unknown>;
+    }
+
+    const dto = plainToInstance(CreateUserDto, data);
+    const errores = await validate(dto);
+    if (errores.length > 0)
+      throw new BusinessException(ErrorCodes.PETICION_INCORRECTA);
+
+    return { dto, file };
   }
 
   @Patch(':id')

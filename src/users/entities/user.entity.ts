@@ -38,6 +38,9 @@ export class User {
   })
   estado: EstadoUsuario;
 
+  @Column({ type: 'text', name: 'foto_url', nullable: true })
+  fotoUrl: string;
+
   @Column({ type: 'date', name: 'fecha_creacion' })
   fechaCreacion: string;
 

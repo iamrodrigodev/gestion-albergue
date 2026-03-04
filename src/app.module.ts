@@ -6,6 +6,7 @@ import { GlobalExceptionFilter } from '@common/filters';
 import { ResponseInterceptor } from '@common/interceptors';
 import { DatabaseModule } from '@database/database.module';
 import { UsersModule } from './users/users.module';
+import { StorageModule } from '@storage/storage.module';
 import { ConfiguracionCache } from '@config/config';
 
 @Module({
@@ -17,6 +18,7 @@ import { ConfiguracionCache } from '@config/config';
     }),
     DatabaseModule,
     UsersModule,
+    StorageModule,
   ],
   controllers: [HealthController],
   providers: [

@@ -11,6 +11,7 @@ import { ValidationPipe, ClassSerializerInterceptor, Logger } from '@nestjs/comm
 import { Reflector } from '@nestjs/core';
 import { AppModule } from '@src/app.module';
 import { validationFactory } from '@common/validation';
+import multipart from '@fastify/multipart';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -19,6 +20,8 @@ async function bootstrap() {
     AppModule,
     new FastifyAdapter({ logger: true }),
   );
+
+  await app.register(multipart);
 
   app.useGlobalPipes(
     new ValidationPipe({

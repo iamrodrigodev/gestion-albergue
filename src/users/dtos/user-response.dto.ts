@@ -26,6 +26,9 @@ export class UserResponseDto {
   estado: EstadoUsuario;
 
   @Expose()
+  fotoUrl: string;
+
+  @Expose()
   fechaCreacion: string;
 
   @Expose()

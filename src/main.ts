@@ -7,7 +7,11 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
-import { ValidationPipe, ClassSerializerInterceptor, Logger } from '@nestjs/common';
+import {
+  ValidationPipe,
+  ClassSerializerInterceptor,
+  Logger,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AppModule } from '@src/app.module';
 import { validationFactory } from '@common/validation';
@@ -15,7 +19,7 @@ import multipart from '@fastify/multipart';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
-  
+
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter({ logger: true }),
@@ -37,7 +41,7 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3000;
   const host = '0.0.0.0';
-  
+
   await app.listen(port, host);
   logger.log(`Aplicación corriendo en http://${host}:${port}`);
 }

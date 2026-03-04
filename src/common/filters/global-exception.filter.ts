@@ -19,7 +19,10 @@ interface RespuestaExcepcion {
 export class GlobalExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(GlobalExceptionFilter.name);
 
-  catch(exception: unknown, host: ArgumentsHost) {
+  catch(
+    exception: Error | BusinessException | HttpException,
+    host: ArgumentsHost,
+  ) {
     const contexto = host.switchToHttp();
     const respuesta = contexto.getResponse<FastifyReply>();
     const peticion = contexto.getRequest<FastifyRequest>();

@@ -2,6 +2,7 @@ import { Controller, Post, Req, Logger } from '@nestjs/common';
 import { StorageService } from './storage.service';
 import { BusinessException } from '@common/exceptions';
 import { ErrorCodes } from '@common/constants';
+import * as fastify from 'fastify';
 
 @Controller('upload')
 export class UploadController {
@@ -10,17 +11,26 @@ export class UploadController {
   constructor(private readonly storageService: StorageService) {}
 
   @Post()
-  async uploadFile(@Req() req: any) {
+  async uploadFile(@Req() req: fastify.FastifyRequest) {
     const file = await req.file();
-    
+
     if (!file) {
-      this.logger.warn('Se intento subir un archivo pero no se encontro nada en la peticion');
+      this.logger.warn(
+        'Se intento subir un archivo pero no se encontro nada en la peticion',
+      );
       throw new BusinessException(ErrorCodes.PETICION_INCORRECTA);
     }
-    
-    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+    const allowedMimeTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'image/gif',
+    ];
     if (!allowedMimeTypes.includes(file.mimetype)) {
-      this.logger.warn(`Intento de subida de archivo no permitido: ${file.mimetype}`);
+      this.logger.warn(
+        `Intento de subida de archivo no permitido: ${file.mimetype}`,
+      );
       throw new BusinessException(ErrorCodes.PETICION_INCORRECTA);
     }
 
@@ -28,7 +38,9 @@ export class UploadController {
       const url = await this.storageService.uploadFile(file);
       return { url };
     } catch (error) {
-      this.logger.error(`Error procesando subida de archivo: ${error.message}`);
+      const message =
+        error instanceof Error ? error.message : 'Error desconocido';
+      this.logger.error(`Error procesando subida de archivo: ${message}`);
       throw new BusinessException(ErrorCodes.ERROR_INTERNO);
     }
   }

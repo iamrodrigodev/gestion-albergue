@@ -15,18 +15,15 @@ import {
 import { CacheInterceptor } from '@nestjs/cache-manager';
 import { plainToInstance } from 'class-transformer';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { UserResponseDto } from './dtos/user-response.dto';
 import { ChangePasswordDto } from './dtos/change-password.dto';
 import { BusinessResponse } from '@common/decorators';
-import { SuccessCodes, ErrorCodes } from '@common/constants';
+import { SuccessCodes } from '@common/constants';
 import { EstadoUsuario } from './enums/user-status.enum';
 import { ParseEstadoPipe } from '@common/pipes';
 import type { FastifyRequest } from 'fastify';
-import type { MultipartFile, MultipartValue } from '@fastify/multipart';
-import { BusinessException } from '@common/exceptions';
-import { validate } from 'class-validator';
+import { RequestParserHelper } from './helpers/request-parser.helper';
 
 @Controller('usuarios')
 export class UsersController {
@@ -35,37 +32,11 @@ export class UsersController {
   @Post()
   @BusinessResponse(SuccessCodes.USUARIO_CREADO)
   async registrar(@Req() req: FastifyRequest): Promise<UserResponseDto> {
-    const { dto, file } = await this.parseRequest(req);
-    const usuario = await this.usersService.crear(dto, file ?? undefined);
+    const { dto, file } = await RequestParserHelper.parseCreateUser(req);
+    const usuario = await this.usersService.crear(dto, file);
     return plainToInstance(UserResponseDto, usuario, {
       excludeExtraneousValues: true,
     });
-  }
-
-  private async parseRequest(
-    req: FastifyRequest,
-  ): Promise<{ dto: CreateUserDto; file: MultipartFile | null }> {
-    let file: MultipartFile | null = null;
-    let data: Record<string, unknown>;
-
-    if (req.isMultipart()) {
-      const parts = req.parts();
-      const fields: Record<string, string> = {};
-      for await (const part of parts) {
-        if (part.type === 'file') file = part;
-        else fields[part.fieldname] = (part as MultipartValue<string>).value;
-      }
-      data = fields;
-    } else {
-      data = req.body as Record<string, unknown>;
-    }
-
-    const dto = plainToInstance(CreateUserDto, data);
-    const errores = await validate(dto);
-    if (errores.length > 0)
-      throw new BusinessException(ErrorCodes.PETICION_INCORRECTA);
-
-    return { dto, file };
   }
 
   @Patch(':id')

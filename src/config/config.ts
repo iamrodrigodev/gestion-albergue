@@ -19,9 +19,8 @@ export class ConfiguracionServidor {
 }
 
 export class ConfiguracionBaseDatos {
-  static readonly SYNCHRONIZE: boolean =
-    process.env.TYPEORM_SYNCHRONIZE === 'true';
-  static readonly LOGGING: boolean = process.env.TYPEORM_LOGGING === 'true';
+  static readonly SYNCHRONIZE: boolean = true;
+  static readonly LOGGING: boolean = true;
   static readonly PUERTO_BASE_DE_DATOS: number = 5432;
   static readonly CONFIGURACION_EXTRA = {
     max: 20,

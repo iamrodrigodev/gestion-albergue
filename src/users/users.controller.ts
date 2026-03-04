@@ -10,6 +10,8 @@ import {
   HttpCode,
   HttpStatus,
   UseInterceptors,
+  Req,
+  Logger,
 } from '@nestjs/common';
 import { CacheInterceptor } from '@nestjs/cache-manager';
 import { plainToInstance } from 'class-transformer';
@@ -19,17 +21,60 @@ import { UpdateUserDto } from './dtos/update-user.dto';
 import { UserResponseDto } from './dtos/user-response.dto';
 import { ChangePasswordDto } from './dtos/change-password.dto';
 import { BusinessResponse } from '@common/decorators';
-import { SuccessCodes } from '@common/constants';
+import { SuccessCodes, ErrorCodes } from '@common/constants';
 import { EstadoUsuario } from './enums/user-status.enum';
 import { ParseEstadoPipe } from '@common/pipes';
+import { FastifyRequest } from 'fastify';
+import { StorageService } from '../storage/storage.service';
+import { BusinessException } from '@common/exceptions';
+import { validate } from 'class-validator';
 
 @Controller('usuarios')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  private readonly logger = new Logger(UsersController.name);
+
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly storageService: StorageService,
+  ) {}
 
   @Post()
   @BusinessResponse(SuccessCodes.USUARIO_CREADO)
-  async registrar(@Body() dto: CreateUserDto): Promise<UserResponseDto> {
+  async registrar(@Req() req: FastifyRequest): Promise<UserResponseDto> {
+    if (!req.isMultipart()) {
+      throw new BusinessException(ErrorCodes.PETICION_INCORRECTA);
+    }
+
+    const parts = req.parts();
+    const data: Record<string, string> = {};
+    let file: any = null;
+
+    for await (const part of parts) {
+      if (part.type === 'file') {
+        file = part;
+      } else {
+        data[part.fieldname] = (part as any).value;
+      }
+    }
+
+    // Mapear datos al DTO y validar antes de subir nada
+    const dto = plainToInstance(CreateUserDto, data);
+    const errores = await validate(dto);
+
+    if (errores.length > 0) {
+      this.logger.warn('Validacion fallida al crear usuario');
+      throw new BusinessException(ErrorCodes.PETICION_INCORRECTA);
+    }
+
+    // Solo si los datos son validos, procedemos con la foto (si hay)
+    if (file) {
+      const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!allowedMimeTypes.includes(file.mimetype)) {
+        throw new BusinessException(ErrorCodes.PETICION_INCORRECTA);
+      }
+      dto.fotoUrl = await this.storageService.uploadFile(file);
+    }
+
     const usuario = await this.usersService.crear(dto);
     return plainToInstance(UserResponseDto, usuario, {
       excludeExtraneousValues: true,

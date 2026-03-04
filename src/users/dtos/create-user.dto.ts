@@ -4,6 +4,7 @@ import {
   IsEmail,
   MinLength,
   Matches,
+  IsOptional,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -30,4 +31,8 @@ export class CreateUserDto {
   @IsString({ message: 'La clave debe ser texto' })
   @MinLength(6, { message: 'La clave debe tener más de 6 caracteres' })
   clave: string;
+
+  @IsOptional()
+  @IsString({ message: 'La URL de la foto debe ser texto' })
+  fotoUrl?: string;
 }

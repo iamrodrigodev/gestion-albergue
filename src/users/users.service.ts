@@ -14,7 +14,7 @@ import { ConfiguracionSeguridad } from '@config/config';
 import { EstadoUsuario } from './enums/user-status.enum';
 import { UserValidationHelper } from './helpers/user-validation.helper';
 import { StorageService } from '../storage/storage.service';
-import type { ArchivoSubida } from '../storage/storage.service';
+import type { ArchivoSubida } from './helpers/request-parser.helper';
 
 @Injectable()
 export class UsersService {
@@ -63,15 +63,23 @@ export class UsersService {
     const usuarioGuardado = await this.repositorioUsuarios.save(nuevoUsuario);
 
     // Solo subir foto DESPUÉS de guardar exitosamente
-    if (archivo && this.ALLOWED_MIME_TYPES.includes(archivo.mimetype)) {
-      try {
-        usuarioGuardado.fotoUrl = await this.storageService.uploadFile(archivo);
-        await this.repositorioUsuarios.save(usuarioGuardado);
-      } catch (error) {
-        this.logger.warn(
-          `Error al subir foto, usuario creado sin imagen: ${error}`,
-        );
+    if (archivo) {
+      this.logger.log(`Archivo recibido: ${archivo.filename}, mimetype: ${archivo.mimetype}, buffer size: ${archivo.buffer?.length}`);
+      if (this.ALLOWED_MIME_TYPES.includes(archivo.mimetype)) {
+        try {
+          usuarioGuardado.fotoUrl = await this.storageService.uploadFile(archivo);
+          this.logger.log(`Foto subida: ${usuarioGuardado.fotoUrl}`);
+          await this.repositorioUsuarios.save(usuarioGuardado);
+        } catch (error) {
+          this.logger.warn(
+            `Error al subir foto, usuario creado sin imagen: ${error}`,
+          );
+        }
+      } else {
+        this.logger.warn(`Mimetype no permitido: ${archivo.mimetype}`);
       }
+    } else {
+      this.logger.log('No se recibió archivo');
     }
 
     return usuarioGuardado;

@@ -4,12 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as path from 'path';
 import { BusinessException } from '@common/exceptions';
 import { ErrorCodes } from '@common/constants';
-
-export interface ArchivoSubida {
-  buffer: Buffer;
-  mimetype: string;
-  filename: string;
-}
+import type { ArchivoSubida } from '../users/helpers/request-parser.helper';
 
 @Injectable()
 export class StorageService {
